@@ -2,6 +2,16 @@
 
 ### Lost something on campus? Find it here.
 
+## Start Here
+
+New to this repo? Three things, in this order, then pick up an issue.
+
+1. **Where it lives.** https://github.com/kalviumcommunity/2627SPR0I_ReFound — public, so the course can open it without being added as a collaborator.
+2. **What we are fixing.** [Issue #8 — Assigned incident: found items are not searchable and private ownership details are exposed](https://github.com/kalviumcommunity/2627SPR0I_ReFound/issues/8).
+3. **How to run it locally.** [SETUP.md](SETUP.md) pins the four tool versions. The `docker compose up` command is **not finished yet** — it lands once the service and Compose files exist.
+
+Work reaches `main` only through a reviewed pull request. There are no direct pushes to `main`; see [Team Workflow](#team-workflow).
+
 ## Repository Access
 
 This repository is public: https://github.com/kalviumcommunity/2627SPR0I_ReFound
@@ -28,8 +38,10 @@ Anyone on the course can open it without being added as a collaborator.
 Students have no way to check whether a lost item was handed in, and staff keep
 records on paper or in spreadsheets that are hard to search and show private details.
 
-Tracked in the issue list under the `incident` label:
-[Assigned incident: found items are not searchable and private details are exposed](https://github.com/kalviumcommunity/2627SPR0I_ReFound/issues?q=is%3Aissue+label%3Aincident)
+Tracked as [issue #8 — Assigned incident: found items are not searchable and private ownership details are exposed](https://github.com/kalviumcommunity/2627SPR0I_ReFound/issues/8), assigned to Danushri Prakash.
+
+Issue #8 is the pointer, not the build. The PRD, the mock and the service code are
+separate pieces of work.
 
 ## Team Workflow
 
