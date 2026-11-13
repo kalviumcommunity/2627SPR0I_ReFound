@@ -54,7 +54,9 @@ export default function ItemDetail() {
           <p className="tag__ref mono">{item.ref}</p>
           <h1 className="tag__item">{item.title}</h1>
           <p className="tag__where mono">↳ {item.location}</p>
-          <span className="stamp" aria-hidden="true">Found</span>
+          <span className={`stamp stamp--${item.status}`} aria-hidden="true">
+            {item.status === "handed_over" ? "Returned" : item.status === "claimed" ? "Reserved" : "Found"}
+          </span>
         </div>
 
         <div className="detail__info">
@@ -83,6 +85,13 @@ export default function ItemDetail() {
 }
 
 function ClaimAction({ user, item, myClaim }) {
+  if (!user && item.status !== "available") {
+    return (
+      <p className="note mono">
+        {item.status === "handed_over" ? "This item has already been returned to its owner." : "Reserved — a claim for this item was approved."}
+      </p>
+    );
+  }
   if (!user) {
     return (
       <div className="claim-cta">
@@ -93,8 +102,13 @@ function ClaimAction({ user, item, myClaim }) {
       </div>
     );
   }
-  if (user.role === "staff") {
-    return <p className="note mono">You're signed in as staff. Claims are made by students and reviewed at the desk.</p>;
+  if (user.role !== "student") {
+    return (
+      <div className="claim-cta">
+        <p className="note mono">You're signed in as staff. Claims are made by students and reviewed at the desk.</p>
+        <Link to="/staff/claims" className="btn btn--ghost">Go to claims</Link>
+      </div>
+    );
   }
   if (myClaim) {
     return (
@@ -105,6 +119,16 @@ function ClaimAction({ user, item, myClaim }) {
         </p>
         <Link to="/claims" className="btn btn--ghost">View my claims</Link>
       </div>
+    );
+  }
+  if (item.status === "handed_over") {
+    return <p className="note mono">This item has already been returned to its owner.</p>;
+  }
+  if (item.status === "claimed") {
+    return (
+      <p className="note mono">
+        Reserved — staff approved another claim for this item. If you think it's yours, visit the help desk.
+      </p>
     );
   }
   return (

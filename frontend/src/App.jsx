@@ -11,6 +11,12 @@ import Browse from "./pages/Browse.jsx";
 import ItemDetail from "./pages/ItemDetail.jsx";
 import Claim from "./pages/Claim.jsx";
 import MyClaims from "./pages/MyClaims.jsx";
+import StaffDesk from "./pages/staff/StaffDesk.jsx";
+import RegisterItem from "./pages/staff/RegisterItem.jsx";
+import ReviewClaims from "./pages/staff/ReviewClaims.jsx";
+import Logbook from "./pages/staff/Logbook.jsx";
+
+const STAFF = ["staff", "supervisor"];
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -45,6 +51,38 @@ export default function App() {
             element={
               <ProtectedRoute role="student">
                 <MyClaims />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff"
+            element={
+              <ProtectedRoute role={STAFF}>
+                <StaffDesk />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/items/new"
+            element={
+              <ProtectedRoute role={STAFF}>
+                <RegisterItem />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/claims"
+            element={
+              <ProtectedRoute role={STAFF}>
+                <ReviewClaims />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/logbook"
+            element={
+              <ProtectedRoute role="supervisor">
+                <Logbook />
               </ProtectedRoute>
             }
           />
