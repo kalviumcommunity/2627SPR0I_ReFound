@@ -33,7 +33,8 @@ itemsRouter.post('/', requireAuth(STAFF), async (req, res, next) => {
       await client.query(
         `INSERT INTO audit_log (actor_id, action, entity, entity_id, detail)
          VALUES ($1, 'item.registered', 'item', $2, $3)`,
-        [req.user.id, String(rows[0].id), { ref, category: input.category, location: input.location }]
+        [req.user.id, String(rows[0].id),
+         { ref, title: input.title, category: input.category, location: input.location }]
       );
 
       return rows[0];

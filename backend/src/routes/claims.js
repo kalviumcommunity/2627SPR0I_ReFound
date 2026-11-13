@@ -9,9 +9,12 @@ const STAFF = ['staff', 'supervisor'];
 
 async function lockClaim(client, id) {
   const { rows } = await client.query(
-    `SELECT c.id, c.item_id, c.user_id, c.status, i.ref, i.status AS item_status
+    `SELECT c.id, c.item_id, c.user_id, c.status,
+            i.ref, i.title AS item_title, i.status AS item_status,
+            u.name AS claimant_name, u.email AS claimant_email
      FROM claims c
      JOIN items i ON i.id = c.item_id
+     JOIN users u ON u.id = c.user_id
      WHERE c.id = $1
      FOR UPDATE OF c`,
     [id]
@@ -52,7 +55,9 @@ claimsRouter.patch('/:id', requireAuth(STAFF), async (req, res, next) => {
       await client.query(
         `INSERT INTO audit_log (actor_id, action, entity, entity_id, detail)
          VALUES ($1, 'claim.reviewed', 'claim', $2, $3)`,
-        [req.user.id, String(claim.id), { status, ref: claim.ref }]
+        [req.user.id, String(claim.id),
+         { status, ref: claim.ref, title: claim.item_title, claimId: claim.id,
+           claimant: claim.claimant_name, claimantEmail: claim.claimant_email }]
       );
 
       return rows[0];
@@ -94,7 +99,9 @@ claimsRouter.post('/:id/handover', requireAuth(STAFF), async (req, res, next) =>
       await client.query(
         `INSERT INTO audit_log (actor_id, action, entity, entity_id, detail)
          VALUES ($1, 'item.handed_over', 'item', $2, $3)`,
-        [req.user.id, String(claim.item_id), { ref: claim.ref, claimId: claim.id, identityChecked: true }]
+        [req.user.id, String(claim.item_id),
+         { ref: claim.ref, title: claim.item_title, claimId: claim.id,
+           claimant: claim.claimant_name, identityChecked: true, note: identityNote }]
       );
 
       return rows[0];

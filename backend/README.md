@@ -31,6 +31,7 @@ npm start                     # http://localhost:3000
 | GET | `/api/items/:ref/claims` | staff | Read claims **with** the private answers |
 | PATCH | `/api/claims/:id` | staff | Approve or reject a pending claim |
 | POST | `/api/claims/:id/handover` | staff | Record a handover after an identity check |
+| GET | `/api/audit?action=&q=&limit=` | supervisor | Read the audit history, newest first |
 | GET | `/api/health` | anyone | Liveness check |
 
 ## Rules the code enforces
@@ -45,7 +46,10 @@ npm start                     # http://localhost:3000
   refused with a 409/400 rather than a warning.
 - **Reference codes are unique and sequential** (`RF-0149`), allocated from a
   PostgreSQL sequence inside the same transaction as the insert.
-- **Every staff action is audited** into `audit_log`.
+- **Every staff action is audited** into `audit_log`, with the item title and
+  claimant name in `detail` so the logbook can describe an event without a join.
+- **The audit history is supervisor-only.** A desk volunteer can act on records
+  but cannot read the history of who did what.
 
 ## What is not built yet
 

@@ -49,12 +49,17 @@ test('staff slice: auth, registration, review, handover', { skip }, async (t) =>
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 
   const staffEmail = 'staff@campus.edu';
+  const supervisorEmail = 'supervisor@campus.edu';
   await pool.query(
     `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, 'staff')`,
     ['Help Desk', staffEmail, await bcrypt.hash('staff-password-1', 4)]
   );
+  await pool.query(
+    `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, 'supervisor')`,
+    ['Campus Supervisor', supervisorEmail, await bcrypt.hash('supervisor-pass-1', 4)]
+  );
 
-  let staffToken, studentToken, studentId, itemRef, claimId, secondClaimId, secondItemRef;
+  let staffToken, studentToken, studentId, itemRef, claimId, secondClaimId, secondItemRef, supervisorToken;
 
   await t.test('health check answers', async () => {
     const res = await request('/api/health');
@@ -219,6 +224,79 @@ test('staff slice: auth, registration, review, handover', { skip }, async (t) =>
     assert.ok(actions.includes('claim.reviewed'));
     assert.ok(actions.includes('item.handed_over'));
     assert.equal(actions.filter((a) => a === 'item.registered').length, 2);
+  });
+
+  await t.test('the audit history is supervisor-only', async () => {
+    const anon = await request('/api/audit');
+    assert.equal(anon.status, 401);
+
+    const asStudent = await request('/api/audit', { token: studentToken });
+    assert.equal(asStudent.status, 403);
+
+    const asStaff = await request('/api/audit', { token: staffToken });
+    assert.equal(asStaff.status, 403, 'a desk volunteer acts on records but does not read the history');
+
+    const login = await request('/api/auth/login', {
+      method: 'POST', body: { email: supervisorEmail, password: 'supervisor-pass-1' },
+    });
+    assert.equal(login.status, 200);
+    assert.equal(login.body.user.role, 'supervisor');
+    supervisorToken = login.body.token;
+
+    const asSupervisor = await request('/api/audit', { token: supervisorToken });
+    assert.equal(asSupervisor.status, 200);
+    assert.ok(asSupervisor.body.entries.length >= 5);
+  });
+
+  await t.test('audit entries carry the fields the logbook renders', async () => {
+    const res = await request('/api/audit', { token: supervisorToken });
+    const handed = res.body.entries.find((e) => e.action === 'item.handed_over');
+    assert.equal(handed.detail.claimant, 'Jeevan HD');
+    assert.equal(handed.detail.title, 'Silver laptop charger');
+    assert.equal(handed.detail.note, 'Student ID S2401 checked against the campus card.');
+    assert.equal(handed.actor.role, 'staff');
+    assert.ok(handed.at, 'entry needs a timestamp');
+
+    const registered = res.body.entries.find((e) => e.action === 'item.registered' && e.detail.ref === itemRef);
+    assert.equal(registered.detail.title, 'Silver laptop charger');
+    assert.equal(registered.detail.location, 'Library');
+
+    const reviewed = res.body.entries.find((e) => e.action === 'claim.reviewed');
+    assert.equal(reviewed.detail.claimant, 'Jeevan HD');
+    assert.ok(reviewed.detail.status);
+  });
+
+  await t.test('the action filter splits claim.reviewed by outcome', async () => {
+    const approved = await request('/api/audit?action=claim.approved', { token: supervisorToken });
+    assert.equal(approved.status, 200);
+    assert.ok(approved.body.entries.length >= 1);
+    assert.ok(approved.body.entries.every((e) => e.action === 'claim.reviewed' && e.detail.status === 'approved'));
+
+    const rejected = await request('/api/audit?action=claim.rejected', { token: supervisorToken });
+    assert.equal(rejected.status, 200);
+    assert.equal(rejected.body.entries.length, 1);
+    assert.ok(rejected.body.entries.every((e) => e.action === 'claim.reviewed' && e.detail.status === 'rejected'));
+
+    const bad = await request('/api/audit?action=nonsense', { token: supervisorToken });
+    assert.equal(bad.status, 400);
+    assert.match(bad.body.error, /Unknown action filter/);
+  });
+
+  await t.test('audit search, ordering and paging', async () => {
+    const byRef = await request(`/api/audit?q=${itemRef}`, { token: supervisorToken });
+    assert.equal(byRef.status, 200);
+    assert.ok(byRef.body.entries.length >= 3, 'registration, review and handover all name this ref');
+    assert.ok(byRef.body.entries.every((e) => e.detail.ref === itemRef));
+
+    const byClaimant = await request('/api/audit?q=Jeevan', { token: supervisorToken });
+    assert.ok(byClaimant.body.entries.length >= 1);
+
+    const paged = await request('/api/audit?limit=1', { token: supervisorToken });
+    assert.equal(paged.body.entries.length, 1);
+
+    const all = await request('/api/audit', { token: supervisorToken });
+    const ids = all.body.entries.map((e) => e.id);
+    assert.deepEqual(ids, [...ids].sort((a, b) => b - a), 'newest first');
   });
 
   await t.test('an unknown route is a clean 404', async () => {
