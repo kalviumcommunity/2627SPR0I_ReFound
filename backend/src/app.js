@@ -4,6 +4,7 @@ import { HttpError } from './lib/errors.js';
 import { authRouter } from './routes/auth.js';
 import { itemsRouter } from './routes/items.js';
 import { claimsRouter } from './routes/claims.js';
+import { auditRouter } from './routes/audit.js';
 
 export function createApp() {
   const app = express();
@@ -16,6 +17,7 @@ export function createApp() {
   app.use('/api/auth', authRouter);
   app.use('/api/items', itemsRouter);
   app.use('/api/claims', claimsRouter);
+  app.use('/api/audit', auditRouter);
 
   app.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 
