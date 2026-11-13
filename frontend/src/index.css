@@ -2097,3 +2097,124 @@ a:focus-visible {
     padding: 1.25rem 1rem 0.5rem;
   }
 }
+
+/* ==========================================================================
+   Supervisor logbook — a bound ledger
+   ========================================================================== */
+
+.logbook {
+  position: relative;
+  background: #fffdf6;
+  border: 2px solid var(--ink);
+  border-left: 18px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink), inset 10px 0 14px -10px rgba(29, 35, 64, 0.45);
+  padding: 1.75rem 1.75rem 1.25rem 3.25rem;
+  margin-top: 1.5rem;
+}
+
+.logbook::before {
+  /* red margin rule */
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2.25rem;
+  width: 2px;
+  background: var(--stamp);
+  opacity: 0.55;
+}
+
+.logbook__day + .logbook__day {
+  margin-top: 1.75rem;
+}
+
+.logbook__date {
+  font-size: 1.15rem;
+  font-style: italic;
+  font-weight: 700;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 0.35rem;
+  margin-bottom: 0;
+}
+
+.logbook__lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.logline {
+  display: grid;
+  grid-template-columns: 52px 150px 1fr auto;
+  gap: 0.9rem;
+  align-items: baseline;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #c9d8f2;
+}
+
+.logline__time {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.logline__action {
+  justify-self: start;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.12rem 0.45rem;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  transform: rotate(-2deg);
+  white-space: nowrap;
+}
+
+.logline__action--marker { color: #8a6400; background: #fff3b8; }
+.logline__action--sky { color: #1d5fb8; background: #dfeaff; }
+.logline__action--ink { color: var(--ink); background: var(--paper-deep); }
+.logline__action--stamp { color: var(--stamp); background: var(--stamp-soft); }
+.logline__action--rose { color: #a8325a; background: #ffe0e8; }
+
+.logline__text {
+  font-family: var(--serif);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.logline__who {
+  font-size: 0.78rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.logline__role {
+  color: var(--ink-soft);
+}
+
+@media (max-width: 820px) {
+  .logline {
+    grid-template-columns: 52px 1fr;
+    gap: 0.35rem 0.75rem;
+  }
+
+  .logline__text,
+  .logline__who {
+    grid-column: 2;
+  }
+
+  .logline__who {
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .logbook {
+    border-left-width: 10px;
+    padding: 1.25rem 1rem 1rem 1.75rem;
+  }
+
+  .logbook::before {
+    left: 1rem;
+  }
+}

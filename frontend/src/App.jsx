@@ -14,6 +14,7 @@ import MyClaims from "./pages/MyClaims.jsx";
 import StaffDesk from "./pages/staff/StaffDesk.jsx";
 import RegisterItem from "./pages/staff/RegisterItem.jsx";
 import ReviewClaims from "./pages/staff/ReviewClaims.jsx";
+import Logbook from "./pages/staff/Logbook.jsx";
 
 const STAFF = ["staff", "supervisor"];
 
@@ -74,6 +75,14 @@ export default function App() {
             element={
               <ProtectedRoute role={STAFF}>
                 <ReviewClaims />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/logbook"
+            element={
+              <ProtectedRoute role="supervisor">
+                <Logbook />
               </ProtectedRoute>
             }
           />

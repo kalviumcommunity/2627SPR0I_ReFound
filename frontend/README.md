@@ -27,6 +27,11 @@ Open http://localhost:5173
 | `/staff` | Staff desk: counts, claims waiting, recently logged items (staff only) |
 | `/staff/items/new` | Log a found item, with a staff-only ownership note (staff only) |
 | `/staff/claims` | Review claims against the private record, approve/reject, record handover (staff only) |
+| `/staff/logbook` | Audit history of every action, with filters and CSV export (supervisor only) |
+
+Demo staff logins (any password): `staff@campus.edu` (staff) and `supervisor@campus.edu` (supervisor).
+The logbook is read from [`src/services/auditService.js`](src/services/auditService.js); the backend
+writes `audit_log` rows but has no read endpoint yet (`GET /api/audit` would be needed).
 
 Staff screens use [`src/services/staffService.js`](src/services/staffService.js), a mock that
 mirrors the backend staff API (`POST /api/items`, `GET /api/items/:ref/claims`,

@@ -36,6 +36,11 @@ export default function StaffDesk() {
           <Link to="/staff/claims" className="btn btn--ghost btn--lg">
             Review claims
           </Link>
+          {user.role === "supervisor" && (
+            <Link to="/staff/logbook" className="btn btn--ghost btn--lg">
+              Open logbook
+            </Link>
+          )}
         </div>
       </header>
 

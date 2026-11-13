@@ -2,7 +2,7 @@
 // Swap each function body for a fetch() call when the public API exists.
 
 import { CATEGORY_COLORS, ITEMS } from "../data/items.js";
-import { KEYS, read, wait, write } from "./mockDb.js";
+import { KEYS, appendAudit, read, wait, write } from "./mockDb.js";
 
 export const CATEGORIES = Object.keys(CATEGORY_COLORS).sort();
 
@@ -111,5 +111,13 @@ export async function submitClaim({ item, user, description, identifying, lostOn
     submittedAt: new Date().toISOString(),
   };
   write(KEYS.claims, [...read(KEYS.claims, []), claim]);
+  // The log records THAT a claim was filed — never the private answers.
+  appendAudit({
+    actor: user,
+    action: "claim.submitted",
+    entity: "claim",
+    entityId: claim.id,
+    detail: { ref: item.ref, title: item.title },
+  });
   return claim;
 }

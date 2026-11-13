@@ -11,8 +11,11 @@ const SESSION_KEY = "refound.session";
 const MOCK_USERS_KEY = "refound.mockUsers";
 const FAKE_DELAY_MS = 600;
 
-// Demo staff account so the Staff tab can be tried before the backend exists.
-const DEMO_STAFF = { name: "Help Desk", email: "staff@campus.edu", role: "staff" };
+// Demo staff accounts so the Staff tab can be tried before the backend exists.
+const DEMO_STAFF = [
+  { name: "Help Desk", email: "staff@campus.edu", role: "staff" },
+  { name: "Desk Supervisor", email: "supervisor@campus.edu", role: "supervisor" },
+];
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -54,10 +57,11 @@ export async function login({ email, role }) {
   const normalized = email.trim().toLowerCase();
 
   if (role === "staff") {
-    if (normalized !== DEMO_STAFF.email) {
+    const staff = DEMO_STAFF.find((s) => s.email === normalized);
+    if (!staff) {
       throw new Error("Staff accounts are created by the help desk. Check your email or contact your supervisor.");
     }
-    return DEMO_STAFF;
+    return staff;
   }
 
   const user = readMockUsers().find((u) => u.email === normalized);

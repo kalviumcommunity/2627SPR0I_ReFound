@@ -2,8 +2,9 @@
 // Each function names the endpoint it stands in for; request and response
 // shapes follow the backend so swapping in fetch() is a small change.
 
-import { KEYS, read, todayISO, wait, write } from "./mockDb.js";
+import { KEYS, appendAudit, read, todayISO, wait, write } from "./mockDb.js";
 import { loadAllItems, toPublicItem } from "./itemsService.js";
+import { loadSession } from "../auth/authService.js";
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const formatRef = (n) => `RF-${String(n).padStart(4, "0")}`;
@@ -52,6 +53,13 @@ export async function registerItem(input) {
   };
   write(KEYS.refSeq, seq + 1);
   write(KEYS.items, [item, ...read(KEYS.items, [])]);
+  appendAudit({
+    actor: loadSession(),
+    action: "item.registered",
+    entity: "item",
+    entityId: item.ref,
+    detail: { ref: item.ref, title: item.title, category: item.category, location: item.location },
+  });
   // Like the API, the response is the PUBLIC shape — the private note is not echoed back.
   return toPublicItem(item);
 }
@@ -118,6 +126,13 @@ export async function reviewClaim(id, status) {
     const item = loadAllItems().find((i) => i.ref === claim.ref);
     if (item?.status === "available") setItemStatus(claim.ref, "claimed");
   }
+  appendAudit({
+    actor: loadSession(),
+    action: "claim.reviewed",
+    entity: "claim",
+    entityId: claim.id,
+    detail: { status, ref: claim.ref, title: claim.itemTitle, claimant: claim.claimantName ?? claim.email },
+  });
   return { id: claim.id, status: claim.status, reviewedAt: claim.reviewedAt };
 }
 
@@ -134,6 +149,20 @@ export async function recordHandover(id, { identityChecked, identityNote }) {
   const handedOverAt = new Date().toISOString();
   updateClaim(id, { handedOverAt, identityNote: identityNote?.trim() || null });
   setItemStatus(current.ref, "handed_over");
+  appendAudit({
+    actor: loadSession(),
+    action: "item.handed_over",
+    entity: "item",
+    entityId: current.ref,
+    detail: {
+      ref: current.ref,
+      title: current.itemTitle,
+      claimId: id,
+      claimant: current.claimantName ?? current.email,
+      identityChecked: true,
+      note: identityNote?.trim() || null,
+    },
+  });
   return { id: `HO-${Date.now().toString().slice(-6)}`, claimId: id, handedOverAt };
 }
 

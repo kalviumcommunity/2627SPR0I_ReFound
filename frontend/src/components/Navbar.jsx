@@ -40,6 +40,11 @@ export default function Navbar() {
               <NavLink to="/staff/claims" className="nav__link">
                 Claims
               </NavLink>
+              {user.role === "supervisor" && (
+                <NavLink to="/staff/logbook" className="nav__link">
+                  Logbook
+                </NavLink>
+              )}
             </>
           )}
           {user ? (
