@@ -17,6 +17,11 @@ export default function ItemTag({ item, index = 0 }) {
       <h3 className="tag__item">{item.title}</h3>
       <p className="tag__where mono">↳ {item.location}</p>
       <p className="tag__date mono">Found {formatDate(item.foundOn)}</p>
+      {item.status === "claimed" && (
+        <span className="stamp stamp--claimed" aria-label="Reserved">
+          Reserved
+        </span>
+      )}
     </Link>
   );
 }

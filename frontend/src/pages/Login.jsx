@@ -36,8 +36,9 @@ export default function Login() {
 
     setSubmitting(true);
     try {
-      await login({ ...form, role });
-      navigate(location.state?.from ?? "/welcome", { replace: true });
+      const signedIn = await login({ ...form, role });
+      const home = signedIn.role === "student" ? "/welcome" : "/staff";
+      navigate(location.state?.from ?? home, { replace: true });
     } catch (err) {
       setFormError(err.message);
     } finally {

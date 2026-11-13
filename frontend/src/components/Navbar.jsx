@@ -5,6 +5,7 @@ import Logo from "./Logo.jsx";
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isStaff = user?.role === "staff" || user?.role === "supervisor";
 
   function handleLogout() {
     logout();
@@ -31,11 +32,23 @@ export default function Navbar() {
               My claims
             </NavLink>
           )}
+          {isStaff && (
+            <>
+              <NavLink to="/staff" end className="nav__link">
+                Desk
+              </NavLink>
+              <NavLink to="/staff/claims" className="nav__link">
+                Claims
+              </NavLink>
+            </>
+          )}
           {user ? (
             <>
-              <NavLink to="/welcome" className="nav__link">
-                {user.name.split(" ")[0]}'s desk
-              </NavLink>
+              {!isStaff && (
+                <NavLink to="/welcome" className="nav__link">
+                  {user.name.split(" ")[0]}'s desk
+                </NavLink>
+              )}
               <button type="button" className="btn btn--ghost btn--sm" onClick={handleLogout}>
                 Log out
               </button>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ItemTag from "../components/ItemTag.jsx";
-import { CATEGORIES, LOCATIONS, searchItems } from "../services/itemsService.js";
+import { CATEGORIES, listLocations, searchItems } from "../services/itemsService.js";
 
 export default function Browse() {
   const [params, setParams] = useSearchParams();
@@ -10,6 +10,7 @@ export default function Browse() {
   const location = params.get("location") ?? "";
 
   const [items, setItems] = useState([]);
+  const [locations] = useState(listLocations);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export default function Browse() {
             <span>Where</span>
             <select value={location} onChange={(e) => setParam("location", e.target.value)}>
               <option value="">Anywhere on campus</option>
-              {LOCATIONS.map((l) => (
+              {locations.map((l) => (
                 <option key={l} value={l}>
                   {l}
                 </option>

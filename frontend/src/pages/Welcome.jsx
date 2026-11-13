@@ -7,16 +7,17 @@ const NEXT = {
     { title: "Track your claims", to: "/claims", color: "sky", note: "Open" },
   ],
   staff: [
-    { title: "Register a found item", color: "marker" },
-    { title: "Review claims", color: "sky" },
-    { title: "Record a handover", color: "rose" },
+    { title: "Log a found item", to: "/staff/items/new", color: "marker", note: "Open" },
+    { title: "Review claims", to: "/staff/claims", color: "sky", note: "Open" },
+    { title: "Record a handover", to: "/staff/claims?tab=approved", color: "rose", note: "Open" },
   ],
 };
 
-// Landing spot after login. Staff screens are still to come (Jeevan's part).
+// Landing spot after login.
 export default function Welcome() {
   const { user } = useAuth();
-  const isStaff = user.role === "staff";
+  const isStaff = user.role !== "student";
+  const tiles = isStaff ? NEXT.staff : NEXT.student;
 
   return (
     <div className="container welcome">
@@ -29,7 +30,7 @@ export default function Welcome() {
       </p>
 
       <div className="welcome__grid">
-        {NEXT[user.role].map((t, i) => {
+        {tiles.map((t, i) => {
           const body = (
             <>
               <span className="tag__hole" aria-hidden="true" />
