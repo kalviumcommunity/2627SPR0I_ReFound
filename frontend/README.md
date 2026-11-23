@@ -20,6 +20,27 @@ Open http://localhost:5173
 To start the database, the API and this UI together, run `npm run dev` from the
 repository root instead.
 
+## Container
+
+```
+docker build -t refound-web:local --build-arg VITE_API_URL=https://refound-api.onrender.com .
+docker run --rm -p 8080:8080 refound-web:local
+```
+
+Then open http://localhost:8080.
+
+`VITE_API_URL` is compiled into the bundle by Vite, so it is a **build** argument:
+changing it needs a rebuild, not a restart. Leaving it out bakes in
+`http://localhost:3000`, which is right for running the image next to a local API.
+
+The image has two stages. The first runs `npm ci` and `npm run build`; the second
+copies only `dist/` and [`server.mjs`](server.mjs). That server is ~90 lines of
+`node:http` with no dependencies, so there is no second base image to patch and
+no `node_modules` in the final layer. It serves the build, falls back to
+`index.html` for client-side routes (so `/browse` and `/staff/items` work on a
+refresh), caches `/assets/*` as immutable, never caches `index.html`, and answers
+`/healthz` for the container healthcheck.
+
 ### Demo accounts (any password)
 
 | Role | How |

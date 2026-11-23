@@ -11,11 +11,13 @@ purpose. That means pinning two layers. Pinning one is not enough:
 | Layer | File | Pin |
 | --- | --- | --- |
 | Base image (API) | [`backend/Dockerfile`](backend/Dockerfile) | `node:20.18.1-alpine3.20@sha256:9b5af1cc895fe7231c351cc1ea653322742091fb5d1ea8f1eb404c11e2b4da56` |
+| Base image (web) | [`frontend/Dockerfile`](frontend/Dockerfile) | the same `node:20.18.1-alpine3.20@sha256:9b5af1c…` digest, in both the build and runtime stages — one base image for the whole project to patch |
 | Runtime inside the image | (comes with the image) | Node `v20.18.1`, npm `10.8.2`, Alpine `3.20.5` |
 | API dependencies | [`backend/package-lock.json`](backend/package-lock.json) | lockfileVersion 3, 100 packages, each with a `sha512` integrity hash |
 | API direct dependencies | [`backend/package.json`](backend/package.json) | exact versions, no `^` / `~` |
 | Install command in the image | `backend/Dockerfile` | `npm ci --omit=dev` (lockfile only, never resolves) |
 | Frontend dependencies | [`frontend/package-lock.json`](frontend/package-lock.json) + `frontend/package.json` | exact versions, 112 packages with integrity hashes |
+| Web runtime dependencies | [`frontend/server.mjs`](frontend/server.mjs) | none — `node:http` only, so the web image ships no `node_modules` at all |
 | Future installs | `backend/.npmrc`, `frontend/.npmrc` | `save-exact=true` — `npm install x` writes `x: "1.2.3"`, not `^1.2.3` |
 
 Direct API dependencies as locked today:
