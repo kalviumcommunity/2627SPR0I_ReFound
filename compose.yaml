@@ -8,6 +8,8 @@
 services:
   api:
     build: ./backend
+    # One named image. Local and demo both run this tag; only the config changes.
+    image: refound-api:local
     environment:
       PORT: ${PORT:-3000}
       # "db" is the Compose service name below: containers reach each other by

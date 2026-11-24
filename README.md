@@ -64,6 +64,43 @@ Anyone on the course can open it without being added as a collaborator.
 
    Stop with `Ctrl+C` or `docker compose down`. `docker compose down -v` also deletes the database volume.
 
+## Configuration (one image, two environments)
+
+Settings live in the environment, never in the image. The `backend/Dockerfile` has no
+port, database URL or secret in it, so the **same image** runs locally and on the demo host.
+Switching environment means switching the config file, not rebuilding.
+
+| Variable | Used by | Required | What it is |
+|---|---|---|---|
+| `PORT` | API | no (default `3000`) | Port the API listens on |
+| `DATABASE_URL` | API | **yes** | PostgreSQL connection URL (secret: has the password) |
+| `JWT_SECRET` | API | **yes** | Signs login tokens, 32+ characters (secret) |
+| `JWT_EXPIRES_IN` | API | no (default `12h`) | How long a login lasts |
+| `BCRYPT_ROUNDS` | API | no (default `10`) | Password hashing cost |
+| `POSTGRES_USER` | Compose `db` | no (default `refound`) | Local database user |
+| `POSTGRES_PASSWORD` | Compose `db` | **yes** (local) | Local database password (secret) |
+| `POSTGRES_DB` | Compose `db` | no (default `refound`) | Local database name |
+| `STAFF_NAME`, `STAFF_EMAIL`, `STAFF_PASSWORD`, `STAFF_ROLE` | `npm run seed:staff` only | when seeding | First staff account (password is secret) |
+| `VITE_API_URL` | frontend build | no | Where the UI calls the API |
+
+Only names and placeholders are committed. Real values exist only on the machine that runs:
+
+| Environment | Config file (git-ignored) | Template (committed) |
+|---|---|---|
+| Local | `.env` | [.env.example](.env.example) |
+| Demo host | `.env.demo` locally, or the host's dashboard | [.env.demo.example](.env.demo.example) |
+
+Same image, two configs:
+
+```
+docker compose build api                     # builds refound-api:local once
+docker compose up                            # local config (.env): api + db
+docker run --rm --env-file .env.demo -p 127.0.0.1:10000:10000 refound-api:local   # demo config
+docker image inspect refound-api:local --format "{{.Id}}"   # same ID both times
+```
+
+A new campus would be another config file (its own database URL and secret), not another image.
+
 ## Assigned Incident
 
 **Found items on campus cannot be searched, and private ownership details are exposed.**
