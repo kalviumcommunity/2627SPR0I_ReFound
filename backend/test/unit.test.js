@@ -36,6 +36,21 @@ test('parseItemInput trims values and defaults optional fields', () => {
   assert.equal(parsed.privateNote, null);
 });
 
+test('parseItemInput rejects impossible calendar dates and future dates', () => {
+  const base = { title: 'Umbrella', description: 'Red', category: 'Accessories', location: 'Main gate' };
+
+  // Right shape, not a real day. This used to reach Postgres and come back as a 500.
+  assert.throws(() => parseItemInput({ ...base, foundOn: '2026-02-31' }, { HttpError }), /real date/);
+  assert.throws(() => parseItemInput({ ...base, foundOn: '2026-13-01' }, { HttpError }), /real date/);
+
+  const future = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  assert.throws(() => parseItemInput({ ...base, foundOn: future }, { HttpError }), /future/);
+
+  // Yesterday is fine.
+  const past = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  assert.equal(parseItemInput({ ...base, foundOn: past }, { HttpError }).foundOn, past);
+});
+
 test('parseItemInput rejects missing fields and bad dates', () => {
   assert.throws(() => parseItemInput({ title: 'Umbrella' }, { HttpError }), /required: description, category, location/);
   assert.throws(

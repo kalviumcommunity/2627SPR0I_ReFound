@@ -65,8 +65,11 @@ jobs:
       - run: npm run build
 
   image:
-    name: API image builds
+    name: Images build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - run: docker build -t refound-api:ci backend
+      # The web image is only ever exercised here. Without this step a broken
+      # frontend Dockerfile reaches main and is discovered at deploy time.
+      - run: docker build -t refound-web:ci frontend

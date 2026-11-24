@@ -33,7 +33,7 @@ docker run --rm -p 3000:3000 \
   sprint-service:local sh -c "npm run db:init && node src/server.js"
 ```
 
-Then `curl http://localhost:3000/api/health` should return `{"ok":true}`.
+Then `curl http://localhost:3000/api/health` should return `{"ok":true,"db":"up"}`.
 
 | | Size |
 | --- | --- |
@@ -78,7 +78,7 @@ Kept on purpose: `package.json` + `package-lock.json` (pinned deps), `db/schema.
 | POST | `/api/claims/mine/:id/withdraw` | student | Withdraw while still pending |
 | GET | `/api/claims/mine/updates` | student | Outcomes I haven't opened yet (navbar badge) |
 | POST | `/api/claims/mine/seen` | student | Mark updates read (`{ ids }`, or all) |
-| GET | `/api/health` | anyone | Liveness check |
+| GET | `/api/health` | anyone | Readiness: runs `SELECT 1` and answers `200 {db:"up"}`, or `503 {db:"down"}` when the database is unreachable |
 
 ## Rules the code enforces
 

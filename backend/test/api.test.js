@@ -64,7 +64,7 @@ test('staff slice: auth, registration, review, handover', { skip }, async (t) =>
   await t.test('health check answers', async () => {
     const res = await request('/api/health');
     assert.equal(res.status, 200);
-    assert.deepEqual(res.body, { ok: true });
+    assert.deepEqual(res.body, { ok: true, db: 'up' }, 'health has to prove the database answers');
   });
 
   await t.test('signup creates a student, never a staff account', async () => {
@@ -133,6 +133,24 @@ test('staff slice: auth, registration, review, handover', { skip }, async (t) =>
       body: { title: 'a', description: 'b', category: 'Keys', location: 'Library', foundOn: '11/11/2026' },
     });
     assert.equal(badDate.status, 400);
+
+    // A real date is not enough: it has to be a day that exists.
+    const impossible = await request('/api/items', {
+      method: 'POST', token: staffToken,
+      body: { title: 'a', description: 'b', category: 'Keys', location: 'Library', foundOn: '2026-02-31' },
+    });
+    assert.equal(impossible.status, 400, 'an impossible date is the caller\'s mistake, not a 500');
+    assert.match(impossible.body.error, /real date/);
+
+    const future = await request('/api/items', {
+      method: 'POST', token: staffToken,
+      body: {
+        title: 'a', description: 'b', category: 'Keys', location: 'Library',
+        foundOn: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+      },
+    });
+    assert.equal(future.status, 400);
+    assert.match(future.body.error, /future/);
   });
 
   await t.test('claims for an item are staff-only and include the private answers', async () => {
