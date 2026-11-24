@@ -64,6 +64,15 @@ Anyone on the course can open it without being added as a collaborator.
 
    Stop with `Ctrl+C` or `docker compose down`. `docker compose down -v` also deletes the database volume.
 
+## CI/CD
+
+- **CI:** [.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every pull request and every push to `main`:
+  backend tests against a throwaway PostgreSQL 16, the frontend build, and the API image build.
+  A red check means the PR doesn't merge.
+- **CD:** [render.yaml](render.yaml) sets `autoDeployTrigger: checksPass`, so Render deploys `main`
+  only after those checks are green. Deploys use the same image recipe with the host's own config
+  (see [Configuration](#configuration-one-image-two-environments) once merged).
+
 ## Assigned Incident
 
 **Found items on campus cannot be searched, and private ownership details are exposed.**
