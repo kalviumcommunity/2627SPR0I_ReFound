@@ -32,12 +32,14 @@ jobs:
     env:
       # A disposable database that exists only for this run. Not a real secret.
       DATABASE_URL: postgres://refound:ci-only-throwaway-password@localhost:5432/refound_test
+      # db:init and the server refuse to start without a 32+ character secret. Throwaway, CI only.
+      JWT_SECRET: ci-only-throwaway-jwt-secret-at-least-32-chars
     defaults:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -53,8 +55,8 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -66,5 +68,5 @@ jobs:
     name: API image builds
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: docker build -t refound-api:ci backend
