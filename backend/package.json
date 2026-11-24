@@ -12,7 +12,6 @@
     "db:init": "node scripts/init-db.js",
     "seed:staff": "node scripts/create-staff.js",
     "test": "node --test --test-concurrency=1",
-    "test": "node --test",
     "seed:items": "node scripts/seed-items.js"
   },
   "dependencies": {

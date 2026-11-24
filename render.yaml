@@ -6,6 +6,8 @@ services:
     name: refound-api
     runtime: node
     plan: free
+    # CD: deploy each push to main, but only once GitHub CI checks pass.
+    autoDeployTrigger: checksPass
     region: singapore # must match the database: internal URLs only work inside one region
     rootDir: backend
     buildCommand: npm ci
@@ -28,6 +30,8 @@ services:
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
+    # CD: deploy each push to main, but only once GitHub CI checks pass.
+    autoDeployTrigger: checksPass
     routes:
       - type: rewrite # React Router: every path serves the app
         source: /*
