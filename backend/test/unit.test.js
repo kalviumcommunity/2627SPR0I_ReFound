@@ -43,3 +43,15 @@ test('parseItemInput rejects missing fields and bad dates', () => {
     /YYYY-MM-DD/
   );
 });
+
+import { checkConfig } from '../src/config.js';
+
+test('startup check names each missing variable and never prints values', () => {
+  const secretUrl = 'postgres://u:super-secret-pw@host:5432/db';
+  assert.deepEqual(checkConfig({}), ['DATABASE_URL is missing', 'JWT_SECRET is missing']);
+  assert.deepEqual(checkConfig({ DATABASE_URL: '  ', JWT_SECRET: 'x'.repeat(32) }), ['DATABASE_URL is missing']);
+  const problems = checkConfig({ DATABASE_URL: secretUrl, JWT_SECRET: 'short-secret', PORT: 'abc' });
+  assert.deepEqual(problems, ['JWT_SECRET must be at least 32 characters', 'PORT must be a whole number between 1 and 65535']);
+  assert.ok(!problems.join(' ').includes('super-secret-pw') && !problems.join(' ').includes('short-secret'));
+  assert.deepEqual(checkConfig({ DATABASE_URL: secretUrl, JWT_SECRET: 'x'.repeat(32), PORT: '3000' }), []);
+});
