@@ -25,4 +25,10 @@ COPY scripts ./scripts
 
 USER node
 EXPOSE 3000
+
+# So Docker and Compose can tell "started" from "serving". /api/health is the same
+# path render.yaml uses, and it answers 503 when the database is unreachable.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
 CMD ["node", "src/server.js"]

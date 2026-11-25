@@ -29,23 +29,30 @@ Anyone on the course can open it without being added as a collaborator.
 2. Match the local tool versions in [SETUP.md](SETUP.md) (Docker, Docker Compose, Git, psql).
    The API's base image and npm packages are pinned — see [DEPENDENCIES.md](DEPENDENCIES.md)
    for what is pinned and how to upgrade on purpose.
-3. Create your local config and replace both placeholders (`POSTGRES_PASSWORD`, `JWT_SECRET`)
-   with your own values. `.env` is git-ignored; never commit it.
+3. Create your local config and replace the three placeholders (`POSTGRES_PASSWORD`,
+   `JWT_SECRET`, `STAFF_PASSWORD`) with your own values. `.env` is git-ignored; never commit it.
 
    ```
    cp .env.example .env
    ```
 
-4. Start the API and its PostgreSQL database with one command:
+4. Start the web UI, the API and its PostgreSQL database with one command:
 
    ```
    docker compose up --build
    ```
 
-   [compose.yaml](compose.yaml) runs two services: `api` (built from `backend/`) and `db`
-   (`postgres:16`). Database files live on the named volume `refound-db`, so they survive
-   `docker compose down` and restarts. The API reaches the database by its service name `db`,
-   not `localhost`, and applies the schema on start. No PostgreSQL install is needed on your laptop.
+   [compose.yaml](compose.yaml) runs three services: `web` (built from `frontend/`),
+   `api` (built from `backend/`) and `db` (`postgres:16`). Database files live on the named
+   volume `refound-db`, so they survive `docker compose down` and restarts. The API reaches
+   the database by its service name `db`, not `localhost`, and applies the schema on start.
+   No PostgreSQL install is needed on your laptop.
+
+   `web` waits for `api` to report **healthy**, not merely started, so the first page load
+   cannot land on an API that is still applying the schema. On start the API also seeds the
+   staff account from `STAFF_EMAIL` / `STAFF_PASSWORD` in `.env` (idempotent), because staff
+   accounts are never created through the API — without it the desk screens have nobody to
+   sign in as.
 
    **No worker process.** That one command starts every process ReFound has. Incident #8
    (search doesn't work, private details are exposed) has no stuck job and no background step.
@@ -61,6 +68,9 @@ Anyone on the course can open it without being added as a collaborator.
    curl http://127.0.0.1:3000/api/health      # {"ok":true}
    curl http://127.0.0.1:3000/api/items       # {"items":[]}
    ```
+
+   Open http://localhost:8080 for the web UI, and sign in on the **Staff / Volunteer** tab
+   with `STAFF_EMAIL` / `STAFF_PASSWORD` from `.env`.
 
    Stop with `Ctrl+C` or `docker compose down`. `docker compose down -v` also deletes the database volume.
 
