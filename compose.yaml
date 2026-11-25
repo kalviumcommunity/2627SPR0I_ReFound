@@ -1,4 +1,4 @@
-# ReFound: the API and its PostgreSQL database, started together with one command:
+# ReFound: the web UI, the API and its PostgreSQL database, started together with one command:
 #   cp .env.example .env    (then replace the placeholder passwords in .env)
 #   docker compose up --build
 # Every value comes from .env. Nothing here belongs to one laptop.
@@ -14,12 +14,43 @@ services:
       # service name, not localhost.
       DATABASE_URL: postgres://${POSTGRES_USER:-refound}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-refound}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
-    # Apply the schema (safe to re-run), then start the server.
-    command: sh -c "npm run db:init && node src/server.js"
+      # The desk account the staff screens sign in with. Staff are never created
+      # through the API, so the stack seeds one on start (idempotent).
+      STAFF_NAME: ${STAFF_NAME:-Help Desk}
+      STAFF_EMAIL: ${STAFF_EMAIL:?set STAFF_EMAIL in .env}
+      STAFF_PASSWORD: ${STAFF_PASSWORD:?set STAFF_PASSWORD in .env}
+      STAFF_ROLE: ${STAFF_ROLE:-staff}
+    # Apply the schema (safe to re-run), seed the staff account, then start the server.
+    # `exec` matters: without it PID 1 is `sh`, which does not forward SIGTERM, so
+    # `docker stop` would skip the server's graceful shutdown and hard-kill it.
+    command: sh -c "npm run db:init && npm run seed:staff && exec node src/server.js"
     ports:
       - "127.0.0.1:${PORT:-3000}:${PORT:-3000}"
     depends_on:
       db:
+        condition: service_healthy
+    # The API image carries the same check, so `docker run` alone behaves the same way.
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # Vite compiles this into the bundle, and the BROWSER is what calls it —
+        # so it is the host's localhost, never the "api" service name.
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8080}:8080"
+    # Waits for the API to be healthy, not merely started, so the first page load
+    # cannot land on an API that is still applying the schema.
+    depends_on:
+      api:
         condition: service_healthy
     restart: unless-stopped
 
