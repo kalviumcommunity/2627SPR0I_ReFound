@@ -17,7 +17,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: refound-db
+          name: refound-demo-db
           property: connectionString # the internal URL
       - key: JWT_SECRET
         generateValue: true
@@ -38,6 +38,7 @@ services:
         destination: /index.html
 
 databases:
-  - name: refound-db
+  - name: refound-demo-db
+    # DEMO data only: showcase rows for the mentor. Never the target of a local reset.
     plan: free
     region: singapore
