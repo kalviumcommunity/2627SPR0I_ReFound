@@ -10,6 +10,9 @@ node_modules/
 dist/
 build/
 
+# Database dumps (scripts/db-backup.sh) — data, never repo content
+backups/
+
 # Logs and editor noise
 *.log
 .DS_Store
