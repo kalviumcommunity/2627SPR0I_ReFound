@@ -197,6 +197,19 @@ We are going to build a simple website with two main sections:
 5. Staff verifies the student's ownership and identity.
 6. Staff hands over the item and updates its status.
 
+## Backups
+
+Free Render Postgres keeps no backups of its own and expires 30 days after
+creation, so the database is ours to protect:
+
+```
+bash scripts/db-backup.sh
+```
+
+Writes a timestamped, gzipped `pg_dump` to `backups/` (git-ignored) and keeps the
+newest 14. Restore, scheduling and the restore drill are in
+[Docs/backups.md](Docs/backups.md).
+
 ## Team Details
 
 - **Team Number:** 04
