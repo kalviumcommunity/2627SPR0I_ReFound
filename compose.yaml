@@ -5,6 +5,12 @@
 # No worker service on purpose: incident #8 has no stuck job or background step
 # (see README, "No worker process").
 
+# LOCAL data only. The database for this file is the `db` service below, stored in the
+# named Docker volume `refound-local-db`. DATABASE_URL is built from the host name `db`
+# and cannot be pointed anywhere else from .env, so `docker compose down -v` can only ever
+# delete that local volume, never the demo database on the faculty host.
+name: refound
+
 services:
   api:
     build: ./backend
@@ -61,7 +67,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-refound}
     volumes:
-      - refound-db:/var/lib/postgresql/data
+      - refound-local-db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 3s
@@ -70,4 +76,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  refound-db:
+  refound-local-db:
+    # Fixed name, so it is the same on every laptop (not prefixed with the folder name).
+    name: refound-local-db

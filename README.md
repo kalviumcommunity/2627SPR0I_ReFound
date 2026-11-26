@@ -44,7 +44,7 @@ Anyone on the course can open it without being added as a collaborator.
 
    [compose.yaml](compose.yaml) runs three services: `web` (built from `frontend/`),
    `api` (built from `backend/`) and `db` (`postgres:16`). Database files live on the named
-   volume `refound-db`, so they survive `docker compose down` and restarts. The API reaches
+   volume `refound-local-db`, so they survive `docker compose down` and restarts. The API reaches
    the database by its service name `db`, not `localhost`, and applies the schema on start.
    No PostgreSQL install is needed on your laptop.
 
@@ -72,7 +72,7 @@ Anyone on the course can open it without being added as a collaborator.
    Open http://localhost:8080 for the web UI, and sign in on the **Staff / Volunteer** tab
    with `STAFF_EMAIL` / `STAFF_PASSWORD` from `.env`.
 
-   Stop with `Ctrl+C` or `docker compose down`. `docker compose down -v` also deletes the database volume.
+   Stop with `Ctrl+C` or `docker compose down`. To wipe local data, see [Data stores](#data-stores-local-vs-demo).
 
 ## CI/CD
 
@@ -82,6 +82,40 @@ Anyone on the course can open it without being added as a collaborator.
 - **CD:** [render.yaml](render.yaml) sets `autoDeployTrigger: checksPass`, so Render deploys `main`
   only after those checks are green. Deploys use the same image recipe with the host's own config
   (see [Configuration](#configuration-one-image-two-environments) once merged).
+
+## Data stores: local vs demo
+
+Two separate stores for the same app. A reset of one never touches the other.
+
+| | Local store | Demo store |
+|---|---|---|
+| What | Docker **named volume** `refound-local-db` (Compose service `db`) | Render PostgreSQL `refound-demo-db` on the faculty free host ([render.yaml](render.yaml)) |
+| Holds | Your experiments and test rows | The showcase rows the mentor sees |
+| `DATABASE_URL` | `postgres://…@db:5432/refound` (host `db`, inside Compose only) | The host's internal URL, set by Render. Never in Git, never in `.env` |
+| Reset | Yes, any time | **Never** from a laptop |
+
+Status: the demo store is defined in `render.yaml` but **not deployed yet**. Until it is,
+there is no demo data, and nothing local is shared with any other URL.
+
+**Local reset** (deletes only your practice data):
+
+```
+docker compose down -v        # stops the stack and deletes the volumes in compose.yaml
+docker compose up --build     # fresh, empty local database
+```
+
+The same, step by step: `docker compose down`, then `docker volume rm refound-local-db`.
+
+**Why it cannot reach the demo store:** `compose.yaml` builds `DATABASE_URL` from the host
+name `db`, its own Postgres container. No `.env` value can point it at another server.
+`down -v` only deletes volumes declared in that file, and the only one is `refound-local-db`,
+a volume on your machine. The demo database lives on Render's servers, is not a Docker volume,
+and its URL is not in this repo, so no local command has it.
+
+A named volume is not a folder in the repo (not a bind mount). It lives in Docker's own volume
+store, so resetting it can't delete project files, and its data never ends up in a commit.
+
+Rebuilding or replacing the `api` container does **not** reset data. The rows are in the volume.
 
 ## Assigned Incident
 
